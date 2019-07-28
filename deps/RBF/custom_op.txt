@@ -1,0 +1,8 @@
+RBFPoly
+double x(?,2)
+double theta(?,?)
+double c()
+double p(6)
+double ac(?)
+double h()
+double y(?) -> output
