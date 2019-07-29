@@ -7,6 +7,7 @@ using Statistics
 using ADCME
 using LinearAlgebra
 quadpy = pyimport("quadpy")
+include("CustomDistributions.jl")
 include("Optim.jl")
 include("Ops.jl")
 include("Quadrature.jl")

@@ -36,6 +36,7 @@ function Base.:rand(s::Stable, n::Int64)
 end
 
 function Base.:rand(s::Stable)
+    α = s.α; σ = s.σ
     γ = (rand()-0.5)*π
     w = rand(s.exponetial)
     σ^(1/α) * sin(α*γ)/(cos(γ)^(1/α)) * (cos((1-α)*γ)/w)^((1-α)/α)
@@ -48,12 +49,12 @@ mutable struct StableSimulator
     α::Float64
     λ::Float64
     αStable::Stable
-    Direction::Distribution
+    Direction
     Nv::Distribution
 end
 
 
-function StableSimulator(A::Array{Float64}, b::Array{Float64}, α::Float64, λ::Float64, Direction::Distribution, Δt::Float64)
+function StableSimulator(A::Array{Float64}, b::Array{Float64}, α::Float64, λ::Float64, Direction, Δt::Float64)
     Nv = MvNormal(b*Δt, A*Δt)
     StableSimulator(Δt, A, b, α, λ, Stable(λ*Δt, α, Exponential()), Direction, Nv)
 end
@@ -84,7 +85,7 @@ end
 
 function simulate(ss::StableSimulator, x0::Array{Float64}, n::Int64)
     local P, Nt
-    λ = ls.λ
+    λ = ss.λ
     X = zeros(n,2)
     X[1,:] = x0
     for t = 2:n 
@@ -92,10 +93,11 @@ function simulate(ss::StableSimulator, x0::Array{Float64}, n::Int64)
         if λ!=0.0
             J += rand(ss.αStable)*rand(ss.Direction)
         end
-        J += rand(ls.Nv)
+        J += rand(ss.Nv)
         X[t,:] = X[t-1,:] + J
     end
-    X
+    ΔX = diff(X, dims=1)
+    X, ΔX
 end
 
 function evaluateECF(X::Array{Float64}, ξ::Array{Float64})
@@ -106,10 +108,4 @@ function evaluateECF(X::Array{Float64}, ξ::Array{Float64})
     E
 end
 
-function evaluateECF(X::Array{Float64}, ξ::PyObject)
-    function _evaluate(ξ)
-        mean(exp(1.0im * X * ξ))
-    end
-    tf.map_fn(_evaluate, ξ, dtype=tf.complex128)
-end
 

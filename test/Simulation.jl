@@ -15,7 +15,7 @@ end
     Δt = 0.5
     # A = zeros(2,2)
     A = diagm(0=>ones(2))
-    b = zeros(2)
+    b = ones(2)
     λ = 1.0
     Jump = MvNormal(zeros(2), diagm(0=>ones(2)))
     ls = LevySimulator(A, b, λ, Jump, Δt)
@@ -28,4 +28,51 @@ end
     scatter3D(ξ[:,1],ξ[:,2], abs.(φ), ".", label="simulated")
     scatter3D(ξ[:,1],ξ[:,2], abs.(φ2), ".", label="exact")
     legend()
+
+    close("all")
+    scatter3D(ξ[:,1],ξ[:,2], imag.(φ), ".", label="simulated")
+    scatter3D(ξ[:,1],ξ[:,2], imag.(φ2), ".", label="exact")
+    legend()
+end
+
+
+function φStableCF_(ξ, A, b, Δt, c)
+    v = 1.0im * b'*ξ - 1/2*ξ'*A*ξ + c * (sum(ξ.^2))^(0.75/2)
+    # v = -π
+    v = exp(Δt*v)
+end
+
+function φStableCF(ξ, A, b, Δt, c)
+    g = zeros(ComplexF64, size(ξ,1))
+    for i = 1:size(ξ,1)
+        g[i] = φStableCF_(ξ[i,:], A, b, Δt, c)
+    end
+    g
+end
+
+@testset "Alpha" begin
+    c = -(sqrt(π)* (7gamma(7/8) + 8gamma(15/8)))/(7gamma(11/8))
+    Δt = 0.5
+    # A = zeros(2,2)
+    A = diagm(0=>ones(2))
+    b = ones(2)
+    α = 0.75
+    λ = 1.0
+    Direction = CirUniform()
+    ls = StableSimulator(A, b, α, λ, Direction, Δt)
+    x0, Δx0 = simulate(ls, zeros(2), 1000)
+
+    ξ = (rand(500,2) .-0.5)*2
+    φ = evaluateECF(Δx0, ξ)
+    φ2 = φStableCF(ξ, A, b, Δt, c)
+    close("all")
+    scatter3D(ξ[:,1],ξ[:,2], abs.(φ), ".", label="simulated")
+    scatter3D(ξ[:,1],ξ[:,2], abs.(φ2), ".", label="exact")
+    legend()
+
+    close("all")
+    scatter3D(ξ[:,1],ξ[:,2], imag.(φ), ".", label="simulated")
+    scatter3D(ξ[:,1],ξ[:,2], imag.(φ2), ".", label="exact")
+    legend()
+
 end
