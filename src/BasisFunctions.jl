@@ -1,4 +1,4 @@
-export RBF, PL, NN, evaluate
+export RBF, PL, NN, Delta, evaluate
 mutable struct RBF
     c::PyObject
     ac::PyObject
@@ -80,6 +80,18 @@ function evaluate(nn::NN, x::Union{PyObject, Array{Float64}})
     squeeze(ae(x, nn.config, nn.scope))
 end
 
+struct Delta
+    y::PyObject
+end
+
+function Delta(n::Int64)
+    x = Variable(zeros(n))
+    Delta(x)
+end
+
+function evaluate(delta::Delta, x::Union{PyObject, Array{Float64}})
+    delta.y
+end
 
 
 

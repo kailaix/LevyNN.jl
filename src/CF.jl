@@ -19,7 +19,7 @@ function evaluate(cf::LevyCF, ξ::Union{Array{Float64},PyObject})
     b = cf.b
     A = cf.A
     weights = cf.quad.weights
-    νx = cf.νx
+    νx = cast(constant(cf.νx), ComplexF64)
     if isa(ξ, Array)
         ξ = constant(ξ)
     end
@@ -71,6 +71,7 @@ function evaluate(cf::StableCF, ξ::Union{Array{Float64},PyObject})
     weights = cf.quad.weights
     points = cf.quad.points
     Γx = cf.Γx
+    Γx = cast(constant(Γx), ComplexF64)
     function _evaluate(ξ)
         ξx = cast(squeeze(cf.quad.points*reshape(ξ,2,1)), ComplexF64)
         s = abs(ξx)^α
