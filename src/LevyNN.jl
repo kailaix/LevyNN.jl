@@ -5,6 +5,7 @@ using PyCall
 using Distributions
 using Statistics
 using ADCME
+using LinearAlgebra
 quadpy = pyimport("quadpy")
 include("Optim.jl")
 include("Ops.jl")

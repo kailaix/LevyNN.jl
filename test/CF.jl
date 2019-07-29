@@ -57,8 +57,9 @@ end
 
 
 @testset "Stable" begin
+    # g(ξ) = ∫|cos(θ)|ᵅdθ |ξ|ᵅ
     c = -(sqrt(π)* (7gamma(7/8) + 8gamma(15/8)))/(7gamma(11/8))
-
+    
     quad = Quadrature1D(20)
     A = constant([3.0 2.0;2.0 4.0])
     b = constant([1.0;2.0])

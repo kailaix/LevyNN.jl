@@ -1,14 +1,25 @@
+export LevySimulator, StableSimulator, simulate, evaluateECF
+
+function Base.:rand(n::Nothing)
+    return zeros(2)
+end
+
 mutable struct LevySimulator
     Δt::Float64
     A::Array{Float64}
     b::Array{Float64}
     λ::Float64
     Jump::Distribution
-    Nv::Distribution
+    Nv::Union{Distribution, Nothing}
 end
 
 function LevySimulator(A::Array{Float64}, b::Array{Float64}, λ::Float64, Jump::Distribution, Δt::Float64)
-    Nv = MvNormal(b*Δt, A*Δt)
+    local Nv
+    if minimum(eigvals(A))<=0.0 || !(norm(A-A')≈0.0)
+        Nv = nothing
+    else
+        Nv = MvNormal(b*Δt, A*Δt)
+    end
     LevySimulator(Δt, A, b, λ, Jump, Nv)
 end
 
@@ -53,7 +64,7 @@ function simulate(ls::LevySimulator, x0::Array{Float64}, n::Int64)
     λ = ls.λ
     X = zeros(n,2)
     if λ!=0.0
-        P = Poisson(λ*Δt)
+        P = Poisson(λ*ls.Δt)
     end
     X[1,:] = x0
     for t = 2:n 
@@ -67,7 +78,8 @@ function simulate(ls::LevySimulator, x0::Array{Float64}, n::Int64)
         J += rand(ls.Nv)
         X[t,:] = X[t-1,:] + J
     end
-    X
+    ΔX = diff(X, dims=1)
+    X, ΔX
 end
 
 function simulate(ss::StableSimulator, x0::Array{Float64}, n::Int64)
@@ -89,7 +101,7 @@ end
 function evaluateECF(X::Array{Float64}, ξ::Array{Float64})
     E = zeros(ComplexF64, size(ξ,1))
     for i = 1:size(ξ,1)
-        E[i] = mean(exp(1.0im * X * ξ[i,:]))
+        E[i] = mean(exp.(1.0im * X * ξ[i,:]))
     end
     E
 end
