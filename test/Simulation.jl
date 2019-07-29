@@ -36,16 +36,16 @@ end
 end
 
 
-function φStableCF_(ξ, A, b, Δt, c)
-    v = 1.0im * b'*ξ - 1/2*ξ'*A*ξ + c * (sum(ξ.^2))^(0.75/2)
+function φStableCF_(ξ, A, b, Δt, c, λ)
+    v = 1.0im * b'*ξ - 1/2*ξ'*A*ξ + λ*c * (sum(ξ.^2))^(0.75/2)
     # v = -π
     v = exp(Δt*v)
 end
 
-function φStableCF(ξ, A, b, Δt, c)
+function φStableCF(ξ, A, b, Δt, c, λ)
     g = zeros(ComplexF64, size(ξ,1))
     for i = 1:size(ξ,1)
-        g[i] = φStableCF_(ξ[i,:], A, b, Δt, c)
+        g[i] = φStableCF_(ξ[i,:], A, b, Δt, c, λ)
     end
     g
 end
@@ -58,13 +58,13 @@ end
     b = ones(2)
     α = 0.75
     λ = 1.0
-    Direction = CirUniform()
-    ls = StableSimulator(A, b, α, λ, Direction, Δt)
+    Γ = x->ones(size(x,1))
+    ls = StableSimulator(A, b, α, λ, Γ, Δt,100)
     x0, Δx0 = simulate(ls, zeros(2), 1000)
 
     ξ = (rand(500,2) .-0.5)*2
     φ = evaluateECF(Δx0, ξ)
-    φ2 = φStableCF(ξ, A, b, Δt, c)
+    φ2 = φStableCF(ξ, A, b, Δt, c, λ)
     close("all")
     scatter3D(ξ[:,1],ξ[:,2], abs.(φ), ".", label="simulated")
     scatter3D(ξ[:,1],ξ[:,2], abs.(φ2), ".", label="exact")
