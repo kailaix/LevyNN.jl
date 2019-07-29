@@ -25,10 +25,10 @@ x0, Δx0 = simulate(ls, zeros(2), 1000)
 
 # A = Variable(diagm(0=>ones(2))); b = Variable(zeros(2))
 A = constant(zeros(2,2)); b= constant(zeros(2))
-# rbf = NN([20,20,20,20,20,1], "nn"); ν = x->evaluate(rbf, x)
+rbf = NN([20,20,20,20,20,1], "nn"); ν = x->evaluate(rbf, x)
 # rbf = RBF(5.0,20); ν = x->evaluate(rbf, x)
 q = Quadrature2D(50, 5.0)
-rbf = Delta(size(q.points,1)); ν = x->evaluate(rbf, x)
+# rbf = Delta(size(q.points,1)); ν = x->evaluate(rbf, x)
 
 cf = LevyCF(A, b, ν, Δt, q)
 y = evaluate(cf, ξ)
