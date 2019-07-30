@@ -12,6 +12,7 @@ using PyPlot
 using SpecialFunctions
 using Distributions
 using LinearAlgebra
+using DelimitedFiles
 sess = Session()
 
 Jump = eval(Jump)()
@@ -71,8 +72,9 @@ init(sess)
 @info run(sess, loss)
 # error()
 
-BFGS(sess, loss, 15000)
-save(sess, "data/$Jump$btype$nξ.mat")
+out = BFGS(sess, loss, 15000)
+save(sess, "$(@__DIR__)/data/$Jump$btype$nξ.mat")
+writedlm("$(@__DIR__)/data/$Jump$btype$nξ.txt", out)
 # ADAM(sess, loss)
 error()
 close("all")
