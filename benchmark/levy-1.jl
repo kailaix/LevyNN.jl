@@ -1,3 +1,9 @@
+Jump = Symbol(ARGS[1])
+btype = ARGS[2]
+nbasis = parse(Int64, ARGS[3])
+nξ = parse(Int64, ARGS[4])
+@info Jump, btype, nbasis, nξ
+
 using Revise
 using Test
 using ADCME
@@ -7,6 +13,13 @@ using SpecialFunctions
 using Distributions
 using LinearAlgebra
 sess = Session()
+
+Jump = eval(Jump)()
+# Jump = TruncatedNormal2D()
+# btype = "NN"
+# nξ = 1000
+
+
 
 function levyf_(ξ, b, A, λ, Δt)
     v = 1.0im * b'*ξ - 1/2*ξ'*A*ξ + λ*(exp(-sum(ξ.^2)/2)-1)
@@ -28,11 +41,10 @@ b = zeros(2)
 # b = [1.0;2.0]
 λ = 1.0
 # Jump = MvNormal(zeros(2), diagm(0=>ones(2)))
-Jump = UniformDisk(1.0)
 # Jump = MixedGaussian()
 ls = LevySimulator(A, b, λ, Jump, Δt)
 x0, Δx0 = simulate(ls, zeros(2), 1000)
-ξ = (rand(1000,2) .-0.5)*3
+ξ = (rand(nξ,2) .-0.5)*3
 φ = evaluateECF(Δx0, ξ)
 # φ = levyf(ξ, b, A, λ, Δt)
 
@@ -42,11 +54,14 @@ A = constant(A); b= constant(b)
 # rbf = RBF(5.0,20); ν = x->evaluate(rbf, x)
 # rbf = PL(5.0,20); ν = x->evaluate(rbf, x)
 quad = Quadrature2D(64, 5.0)
-rbf = NN([20,20,20,20,20,1], "nn0000"); ν = x->λ*evaluate(rbf, x)
-# rbf = RBF(5.0,20); ν = x->λ*evaluate(rbf, x)
-# rbf = PL(5.0,20); ν = x->evaluate(rbf, x)
-# ν = x-> λ*exp.(-(x[:,1].^2+x[:,2].^2)/2)/2π
-# ν = x-> zeros(size(x,1))
+if btype=="NN"
+    global rbf = NN([20*ones(Int64, nbasis);1], "nn")
+elseif btype=="RBF"
+    global rbf = RBF(5.0,nbasis)
+elseif btype=="PL"
+    global rbf = PL(5.0,nbasis)
+end
+ν = x->λ*evaluate(rbf, x)
 lcf = LevyCF(A, b, ν, Δt, quad)
 f = evaluate(lcf, ξ)
 
@@ -57,6 +72,7 @@ init(sess)
 # error()
 
 BFGS(sess, loss, 15000)
+save(sess, "data/$Jump$btype$nξ.mat")
 # ADAM(sess, loss)
 error()
 close("all")

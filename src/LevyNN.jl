@@ -16,4 +16,5 @@ include("Quadrature.jl")
 include("BasisFunctions.jl")
 include("CF.jl")
 include("Simulation.jl")
+include("Utils.jl")
 end
