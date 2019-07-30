@@ -6,6 +6,8 @@ using Distributions
 using Statistics
 using ADCME
 using LinearAlgebra
+using PyPlot
+np = pyimport("numpy")
 quadpy = pyimport("quadpy")
 include("CustomDistributions.jl")
 include("Optim.jl")

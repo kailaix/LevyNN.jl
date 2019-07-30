@@ -74,10 +74,30 @@ function NN(config::Array{Int64}, scope::String)
 end
 
 function evaluate(nn::NN, x::Union{PyObject, Array{Float64}})
+    scope = nn.scope
+    output_dims = nn.config
     if isa(x, Array)
         x = constant(x)
     end
-    squeeze(ae(x, nn.config, nn.scope))
+
+    flag = false
+    if length(size(x))==1
+        x = reshape(x, length(x), 1)
+        flag = true
+    end
+    net = x
+    variable_scope(scope, reuse=AUTO_REUSE, initializer=tf.contrib.layers.xavier_initializer()) do
+        for i = 1:length(output_dims)-1
+            net = dense(net, output_dims[i], activation="relu")
+        end
+        net = dense(net, output_dims[end])
+    end
+    if flag && (size(net,2)==1)
+        net = squeeze(net)
+    end
+    
+    # squeeze(ae(x, nn.config, nn.scope))
+    squeeze((net))
 end
 
 struct Delta

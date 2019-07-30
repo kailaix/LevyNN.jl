@@ -29,9 +29,10 @@ b = zeros(2)
 λ = 1.0
 # Jump = MvNormal(zeros(2), diagm(0=>ones(2)))
 Jump = UniformDisk(1.0)
+# Jump = MixedGaussian()
 ls = LevySimulator(A, b, λ, Jump, Δt)
-x0, Δx0 = simulate(ls, zeros(2), 5000)
-ξ = (rand(5000,2) .-0.5)*3
+x0, Δx0 = simulate(ls, zeros(2), 1000)
+ξ = (rand(1000,2) .-0.5)*3
 φ = evaluateECF(Δx0, ξ)
 # φ = levyf(ξ, b, A, λ, Δt)
 
@@ -40,8 +41,8 @@ A = constant(A); b= constant(b)
 # ν = x->zeros(size(x,1))
 # rbf = RBF(5.0,20); ν = x->evaluate(rbf, x)
 # rbf = PL(5.0,20); ν = x->evaluate(rbf, x)
-quad = Quadrature2D(128, 5.0)
-rbf = NN([20,20,20,1], "nn2"); ν = x->λ*evaluate(rbf, x)
+quad = Quadrature2D(64, 5.0)
+rbf = NN([20,20,20,20,20,1], "nn0000"); ν = x->λ*evaluate(rbf, x)
 # rbf = RBF(5.0,20); ν = x->λ*evaluate(rbf, x)
 # rbf = PL(5.0,20); ν = x->evaluate(rbf, x)
 # ν = x-> λ*exp.(-(x[:,1].^2+x[:,2].^2)/2)/2π
@@ -55,7 +56,7 @@ init(sess)
 @info run(sess, loss)
 # error()
 
-BFGS(sess, loss, 2000)
+BFGS(sess, loss, 15000)
 # ADAM(sess, loss)
 error()
 close("all")
@@ -72,11 +73,13 @@ legend()
 
 close("all")
 try
-global νx = run(sess, lcf.νx)
+    global νx = run(sess, lcf.νx)
 catch
     global νx = lcf.νx
 end
-scatter3D(quad.points[:,1],quad.points[:,2],abs.(νx), ".", label="learned")
+scatter3D(quad.points[:,1],quad.points[:,2],νx, ".", label="learned")
+# scatter(quad.points[:,1],quad.points[:,2],c=νx, linewidths=0)
+pcolormesh(sess, ν, 1.5)
 v = exp.(-sum(quad.points.^2,dims=2)/2)/(2π)
 # scatter3D(quad.points[:,1],quad.points[:,2],v, ".", label="exact")
 legend()
