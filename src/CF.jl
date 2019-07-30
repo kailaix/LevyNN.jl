@@ -8,7 +8,13 @@ mutable struct LevyCF
     quad::Quadrature
 end
 
-function LevyCF(A::PyObject, b::PyObject, ν::Function, Δt::Float64, quad::Quadrature)
+function LevyCF(A::Union{Array{Float64}, PyObject}, b::Union{Array{Float64}, PyObject}, ν::Function, Δt::Float64, quad::Quadrature)
+    if isa(A, Array)
+        A = constant(A)
+    end
+    if isa(b, Array)
+        b = constant(b)
+    end
     points = quad.points
     νx = ν(points)
     LevyCF(A,b,ν,νx,Δt,quad)

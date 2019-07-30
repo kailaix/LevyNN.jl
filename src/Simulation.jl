@@ -42,11 +42,11 @@ mutable struct LevySimulator
     A::Array{Float64}
     b::Array{Float64}
     λ::Float64
-    Jump::Distribution
+    Jump
     Nv::Union{Distribution, Nothing}
 end
 
-function LevySimulator(A::Array{Float64}, b::Array{Float64}, λ::Float64, Jump::Distribution, Δt::Float64)
+function LevySimulator(A::Array{Float64}, b::Array{Float64}, λ::Float64, Jump, Δt::Float64)
     local Nv
     if minimum(eigvals(A))<=0.0 || !(norm(A-A')≈0.0)
         Nv = nothing
@@ -58,6 +58,7 @@ end
 
 
 function simulate(ls::LevySimulator, x0::Array{Float64}, n::Int64)
+    # @show ls.Nv
     # Reference: https://quant.stackexchange.com/questions/29606/how-to-simulate-a-jump-diffusion-process
     local P
     λ = ls.λ

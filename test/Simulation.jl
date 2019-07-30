@@ -35,6 +35,36 @@ end
     legend()
 end
 
+@testset "Levy-CF" begin
+    Δt = 0.5
+    # A = zeros(2,2)
+    A = [1.0 2.0;2.0 6.0]
+    b = [1.0;2.0]
+    λ = 0.0
+    Jump = MvNormal(zeros(2), diagm(0=>ones(2)))
+    ls = LevySimulator(A, b, λ, Jump, Δt)
+    x0, Δx0 = simulate(ls, zeros(2), 1000)
+    ξ = (rand(1000,2) .-0.5)*2
+    φ = evaluateECF(Δx0, ξ)
+
+    quad = Quadrature2D(40, 5.0)
+    ν = x-> λ*exp.(-(x[:,1].^2+x[:,2].^2)/2)/2π
+    lcf = LevyCF(A, b, ν, Δt, quad)
+    f = evaluate(lcf, ξ)
+    φ1 = run(sess, f)
+
+    @show mean((abs.(φ)-abs.(φ1)).^2)
+    close("all")
+    scatter3D(ξ[:,1], ξ[:,2], abs.(φ1), ".", label="Quadrature")
+    scatter3D(ξ[:,1], ξ[:,2], abs.(φ), ".", label="Exact")
+    legend()
+
+    close("all")
+    scatter3D(ξ[:,1], ξ[:,2], imag.(φ1), ".", label="Quadrature")
+    scatter3D(ξ[:,1], ξ[:,2], imag.(φ), ".", label="Exact")
+    legend()
+end
+
 
 function φStableCF_(ξ, A, b, Δt, c, λ)
     v = 1.0im * b'*ξ - 1/2*ξ'*A*ξ + λ*c * (sum(ξ.^2))^(0.75/2)
