@@ -4,7 +4,7 @@ for btype in NN PL RBF
 do 
 for nbasis in 10 20 40
 do 
-echo benchmark/levy-1.jl $domain $btype $nbasis &
+julia benchmark/levy-1.jl $domain $btype $nbasis &
 done
 wait %1 %2 %3
 done
@@ -16,7 +16,7 @@ for btype in NN PL RBF
 do 
 for nbasis in 10 20 40
 do 
-echo benchmark/alpha-1.jl $domain $btype $nbasis &
+julia benchmark/alpha-1.jl $domain $btype $nbasis &
 done
 wait %1 %2 %3
 done
