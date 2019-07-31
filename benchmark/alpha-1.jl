@@ -13,6 +13,7 @@ using SpecialFunctions
 using Distributions
 using LinearAlgebra
 using DelimitedFiles
+using Random; Random.seed!(233)
 sess = Session()
 
 # Jump = eval(Jump)()
@@ -52,13 +53,13 @@ A = constant(A); b= constant(b)
 # end
 
 rbf = NN([20*ones(Int64, nbasis);1], "nn5")
-Γ_var = x->sigmoid(evaluate1D(rbf, x))
+Γ_var = x->abs(evaluate1D(rbf, x))
 
-# rbf = PL1D(100)
-# Γ_var = x->evaluate1D(rbf,x)
+rbf = PL1D(100)
+Γ_var = x->abs(evaluate1D(rbf,x))
 
-# rbf = RBF1D(10)
-# Γ_var = x->evaluate1D(rbf,x)
+rbf = RBF1D(10)
+Γ_var = x->abs(evaluate1D(rbf,x))
 
 
 quad = Quadrature1D(100)

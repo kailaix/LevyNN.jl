@@ -20,7 +20,7 @@ function RBF(R::Float64, n::Int64, c::Float64=0.0; poly::Bool = true)
     ac = constant([-R;-R])
     h = constant(2R/n)
     nparams = 0.0
-    θ = Variable(zeros(n+1, n+1))
+    θ = Variable(rand(n+1, n+1))
     nparams += (n+1)^2
     if poly
         nparams += 3
@@ -49,7 +49,7 @@ end
 function PL(R::Float64, n::Int64)
     ac = constant([-R;-R])
     h = constant(2R/n)
-    θ = Variable(zeros(n+1, n+1))
+    θ = Variable(rand(n+1, n+1))
     PL(ac, h, θ, (n+1)^2)
 end
 
@@ -77,7 +77,7 @@ struct PL1D
 end
 
 function PL1D(n::Int64)
-    θ = Variable(zeros(n))
+    θ = Variable(rand(n))
     PL1D(θ, n)
 end
 
@@ -97,7 +97,7 @@ end
 
 function RBF1D(n::Int64)
     c = 2π/n
-    θ = Variable(zeros(n))
+    θ = Variable(rand(n))
     RBF1D(θ, constant(c), n)
 end
 
@@ -159,7 +159,7 @@ struct Delta
 end
 
 function Delta(n::Int64)
-    x = Variable(zeros(n))
+    x = Variable(rand(n))
     Delta(x)
 end
 
