@@ -1,9 +1,11 @@
-# Jump = Symbol(ARGS[1])
-# btype = ARGS[2]
-# nbasis = parse(Int64, ARGS[3])
-# nξ = parse(Int64, ARGS[4])
-# @info Jump, btype, nbasis, nξ
+# domain = "Γstep"
+# btype = "NN"
+# nbasis = 9
+domain = ARGS[1]
+btype = ARGS[2]
+nbasis = parse(Int64, ARGS[3])
 
+@info domain, btype, nbasis
 using Revise
 using Test
 using ADCME
@@ -19,10 +21,8 @@ sess = Session()
 # Jump = eval(Jump)()
 # Jump = TruncatedNormal2D()
 # Γ = Γuniform
-Γ = Γstep
-btype = "NN"
+Γ = eval(Meta.parse(domain))
 nξ = 1000
-nbasis = 9
 
 Δt = 0.5
 A = zeros(2,2)
@@ -52,17 +52,21 @@ A = constant(A); b= constant(b)
 #     global rbf = PL(5.0,nbasis)
 # end
 
-rbf = NN([20*ones(Int64, nbasis);1], "nn5")
-Γ_var = x->abs(evaluate1D(rbf, x))
-
-rbf = PL1D(100)
-Γ_var = x->abs(evaluate1D(rbf,x))
-
-rbf = RBF1D(10)
-Γ_var = x->abs(evaluate1D(rbf,x))
-
-
 quad = Quadrature1D(100)
+
+if btype=="NN"
+    global rbf = NN([20*ones(Int64, div(nbasis,2));1], "nn5")
+elseif btype=="PL"  
+    global rbf = PL1D(nbasis)
+elseif btype=="RBF"
+    global rbf = RBF1D(nbasis)
+elseif btype=="Delta"
+    global rbf = Delta(length(quad.weights))
+end
+
+Γ_var = x->abs(evaluate1D(rbf,x))
+
+
 α_var = Variable(1.0)
 lcf = StableCF(A, b, Γ_var, α_var, Δt, quad)
 f = evaluate(lcf, ξ)
@@ -73,10 +77,24 @@ init(sess)
 @info run(sess, loss)
 # error()
 
-out = BFGS(sess, loss, 100)
+out = BFGS(sess, loss, 15000)
 @info run(sess, α_var)
-# save(sess, "$(@__DIR__)/data/$btype$nξ.mat")
-# writedlm("$(@__DIR__)/data/$btype$nξ.txt", out)
+if !isdir("$(@__DIR__)/data/$domain$btype$nbasis")
+    mkdir("$(@__DIR__)/data/$domain$btype$nbasis")
+end
+save(sess, "$(@__DIR__)/data/$domain$btype$nbasis/data.mat")
+writedlm("$(@__DIR__)/data/$domain$btype$nbasis/loss.txt", out)
+close("all")
+try
+    global νx = run(sess, lcf.Γx)
+catch
+    global νx = lcf.νx
+end
+plot(quad.θ,νx, "--", label="learned")
+plot(quad.θ,Γ(quad.points), "-", label="exact")
+legend()
+savefig("$(@__DIR__)/data/$domain$btype$nbasis/result.png")
+
 # ADAM(sess, loss)
 error()
 close("all")
@@ -98,7 +116,6 @@ catch
     global νx = lcf.νx
 end
 plot(quad.θ,νx, "--", label="learned")
-# scatter(quad.points[:,1],quad.points[:,2],c=νx, linewidths=0)
 plot(quad.θ,Γ(quad.points), "-", label="exact")
 legend()
 # ylim([0.0,1.5])

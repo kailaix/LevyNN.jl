@@ -1,9 +1,23 @@
-export TruncatedNormal2D, MixedGaussian2D, StandardNormal2D, Γstep, Γuniform, Γx2
+export TruncatedNormal2D, MixedGaussian2D, TruncatedUniform2D, StandardNormal2D, Γstep, Γuniform, Γx2
 struct TruncatedNormal2D end
 function Base.:rand(uf::TruncatedNormal2D)
     θ = randn(2)
     θ /= norm(θ)
     θ[1] = abs(θ[1])
+    return θ
+end
+
+struct TruncatedUniform2D end
+function Base.:rand(uf::TruncatedUniform2D)
+    local θ
+    while true
+        θ = randn(2)
+        if norm(θ)>1 || θ[1]<0 || θ[2]<0
+            continue
+        else
+            break
+        end
+    end
     return θ
 end
 

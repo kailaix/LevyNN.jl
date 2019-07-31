@@ -1,8 +1,11 @@
-Jump = Symbol(ARGS[1])
+# domain = "TruncatedUniform2D"
+# btype = "Delta"
+# nbasis = 9
+domain = ARGS[1]
 btype = ARGS[2]
 nbasis = parse(Int64, ARGS[3])
-nξ = parse(Int64, ARGS[4])
-@info Jump, btype, nbasis, nξ
+@info domain, btype, nbasis
+
 
 using Revise
 using Test
@@ -15,11 +18,8 @@ using LinearAlgebra
 using DelimitedFiles
 sess = Session()
 
-Jump = eval(Jump)()
-# Jump = TruncatedNormal2D()
-# btype = "NN"
-# nξ = 1000
-
+Jump = eval(Meta.parse(domain))()
+nξ = 1000
 
 
 function levyf_(ξ, b, A, λ, Δt)
@@ -44,7 +44,7 @@ b = zeros(2)
 # Jump = MvNormal(zeros(2), diagm(0=>ones(2)))
 # Jump = MixedGaussian()
 ls = LevySimulator(A, b, λ, Jump, Δt)
-x0, Δx0 = simulate(ls, zeros(2), 1000)
+x0, Δx0 = simulate(ls, zeros(2), 10000)
 ξ = (rand(nξ,2) .-0.5)*3
 φ = evaluateECF(Δx0, ξ)
 # φ = levyf(ξ, b, A, λ, Δt)
@@ -56,26 +56,49 @@ A = constant(A); b= constant(b)
 # rbf = PL(5.0,20); ν = x->evaluate(rbf, x)
 quad = Quadrature2D(64, 5.0)
 if btype=="NN"
-    global rbf = NN([20*ones(Int64, nbasis);1], "nn")
+    global rbf = NN([20*ones(Int64, div(nbasis,2));1], "nn")
 elseif btype=="RBF"
     global rbf = RBF(5.0,nbasis)
 elseif btype=="PL"
     global rbf = PL(5.0,nbasis)
+elseif btype=="Delta"
+    global rbf = Delta(length(quad.weights))
 end
-ν = x->λ*evaluate(rbf, x)
+ν = x->λ*abs(evaluate(rbf, x))
 lcf = LevyCF(A, b, ν, Δt, quad)
 f = evaluate(lcf, ξ)
 
 weight = @. exp(-(ξ[:,1]^2 + ξ[:,2]^2))
-loss = sum(abs(φ-f)^2 .* weight)
+loss = sum(abs(φ-f)^2)# .* weight)
 init(sess)
 @info run(sess, loss)
 # error()
 
 out = BFGS(sess, loss, 15000)
-save(sess, "$(@__DIR__)/data/$Jump$btype$nξ.mat")
-writedlm("$(@__DIR__)/data/$Jump$btype$nξ.txt", out)
-# ADAM(sess, loss)
+
+@info run(sess, α_var)
+if !isdir("$(@__DIR__)/data/2D$domain$btype$nbasis")
+    mkdir("$(@__DIR__)/data/2D$domain$btype$nbasis")
+end
+save(sess, "$(@__DIR__)/data/2D$domain$btype$nbasis/data.mat")
+writedlm("$(@__DIR__)/data/2D$domain$btype$nbasis/loss.txt", out)
+close("all")
+if btype=="Delta"
+    try
+        global νx = run(sess, lcf.νx)
+    catch
+        global νx = lcf.νx
+    end
+    scatter(quad.points[:,1],quad.points[:,2],c=νx,marker=".", linewidths=0)
+    axis("equal")
+    colorbar()
+else
+    pcolormesh(sess, ν, 1.5)
+end
+savefig("$(@__DIR__)/data/2D$domain$btype$nbasis/result.png")
+
+
+
 error()
 close("all")
 φ1 = run(sess, f)
@@ -95,10 +118,10 @@ try
 catch
     global νx = lcf.νx
 end
-scatter3D(quad.points[:,1],quad.points[:,2],νx, ".", label="learned")
+# scatter3D(quad.points[:,1],quad.points[:,2],νx, ".", label="learned")
 # scatter(quad.points[:,1],quad.points[:,2],c=νx, linewidths=0)
 pcolormesh(sess, ν, 1.5)
-v = exp.(-sum(quad.points.^2,dims=2)/2)/(2π)
+# v = exp.(-sum(quad.points.^2,dims=2)/2)/(2π)
 # scatter3D(quad.points[:,1],quad.points[:,2],v, ".", label="exact")
 legend()
 

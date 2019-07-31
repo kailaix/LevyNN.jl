@@ -1,14 +1,23 @@
-julia benchmark/levy-1.jl TruncatedNormal2D RBF 10 1000 &
-julia benchmark/levy-1.jl TruncatedNormal2D NN 10 1000 &
-julia benchmark/levy-1.jl TruncatedNormal2D PL 10 1000 &
+for domain in TruncatedUniform2D MixedGaussian2D StandardNormal2D
+do 
+for btype in NN PL RBF
+do 
+for nbasis in 10 20 40
+do 
+echo benchmark/levy-1.jl $domain $btype $nbasis &
+done
 wait %1 %2 %3
+done
+done
 
-julia benchmark/levy-1.jl TruncatedNormal2D NN 2 1000  &
-julia benchmark/levy-1.jl TruncatedNormal2D RBF 20 1000 &
-julia benchmark/levy-1.jl TruncatedNormal2D RBF 40 1000 &
+for domain in Γuniform Γx2 Γstep
+do 
+for btype in NN PL RBF
+do 
+for nbasis in 10 20 40
+do 
+echo benchmark/alpha-1.jl $domain $btype $nbasis &
+done
 wait %1 %2 %3
-
-julia benchmark/levy-1.jl TruncatedNormal2D NN 5 1000  &
-julia benchmark/levy-1.jl TruncatedNormal2D PL 20 1000 &
-julia benchmark/levy-1.jl TruncatedNormal2D PL 40 1000 &
-wait %1 %2 %3
+done
+done
