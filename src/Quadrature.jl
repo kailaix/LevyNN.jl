@@ -4,6 +4,7 @@ struct Quadrature
     points::Array{Float64}
     weights::Array{Float64}
     n::Int64
+    θ::Union{Missing, Array{Float64}}
 end
 
 function supported_quadrature_order()
@@ -14,7 +15,7 @@ function Quadrature1D(n::Int64)
     θ = LinRange(0,2π,n+1)[1:n]
     points = [cos.(θ) sin.(θ)]
     weights = 2π/n*ones(n)
-    Quadrature(points, weights, length(weights))
+    Quadrature(points, weights, length(weights), Array(θ))
 end
 
 function Quadrature2D(n::Int64, R::Float64=1.0, x::Float64=0.0, y::Float64=0.0)
@@ -22,5 +23,5 @@ function Quadrature2D(n::Int64, R::Float64=1.0, x::Float64=0.0, y::Float64=0.0)
         error("order $n not supported\n Supported orders: $(supported_quadrature_order())")
     end
     points, weights = quadgauss(n,x,y,R)
-    Quadrature(points, weights, length(weights))
+    Quadrature(points, weights, length(weights), missing)
 end

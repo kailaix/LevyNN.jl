@@ -1,4 +1,7 @@
-export RBF, PL, NN, Delta, evaluate
+export RBF, RBF1D, PL, PL1D, NN, Delta, evaluate, evaluate1D
+
+
+
 mutable struct RBF
     c::PyObject
     ac::PyObject
@@ -50,11 +53,58 @@ function PL(R::Float64, n::Int64)
     PL(ac, h, θ, (n+1)^2)
 end
 
+
 function evaluate(plfun::PL, x::Union{PyObject, Array{Float64}})
     if isa(x, Array)
         x = constant(x)
     end
     pl(x,plfun.θ,plfun.ac,plfun.h)
+end
+
+function symmetrize(x)
+    y0 = zeros(size(x,1))
+    x0 = x
+    for i = 1:length(y0)
+        y0[i] = atan(x0[i,2],x0[i,1])
+        y0[i] += π
+    end
+    y0
+end
+
+struct PL1D
+    θ::PyObject
+    nparams::Int64
+end
+
+function PL1D(n::Int64)
+    θ = Variable(zeros(n))
+    PL1D(θ, n)
+end
+
+function evaluate1D(plfun::PL1D, x::Array{Float64})
+    x0 = symmetrize(x)
+    x0 = constant(x0)
+    ploned(x0,plfun.θ)+ploned(2π-x0,plfun.θ)
+end
+
+
+
+struct RBF1D
+    θ::PyObject
+    c::PyObject
+    nparams::Int64
+end
+
+function RBF1D(n::Int64)
+    c = 2π/n
+    θ = Variable(zeros(n))
+    RBF1D(θ, constant(c), n)
+end
+
+function evaluate1D(plfun::RBF1D, x::Array{Float64})
+    x0 = symmetrize(x)
+    x0 = constant(x0)
+    rbfoned(x0,plfun.θ, plfun.c)+rbfoned(2π-x0,plfun.θ, plfun.c)
 end
 
 
@@ -98,6 +148,10 @@ function evaluate(nn::NN, x::Union{PyObject, Array{Float64}})
     
     # squeeze(ae(x, nn.config, nn.scope))
     squeeze((net))
+end
+
+function evaluate1D(nn::NN, x::Union{PyObject, Array{Float64}})
+    evaluate(nn, x) + evaluate(nn, -x)
 end
 
 struct Delta

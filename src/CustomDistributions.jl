@@ -1,4 +1,4 @@
-export TruncatedNormal2D, MixedGaussian2D, StandardNormal2D, Uniform1D, Step1D
+export TruncatedNormal2D, MixedGaussian2D, StandardNormal2D, Γstep, Γuniform, Γx2
 struct TruncatedNormal2D end
 function Base.:rand(uf::TruncatedNormal2D)
     θ = randn(2)
@@ -21,23 +21,33 @@ function Base.:rand(mg::StandardNormal2D)
     randn(2)
 end
 
-struct Uniform1D end
-function Base.:rand(uf::Uniform1D)
-    s = randn(2)
-    s /= norm(s)
-    s
+
+function Γuniform(x)
+    return ones(size(x,1))
 end
 
-struct Step1D end
-function Base.:rand(uf::Step1D)
-    local s 
-    while true
-        s = randn(2)
-        s /= norm(s)
-        if abs(s[1])>0.5
-            break
+function Γstep(x)
+    function helper(x)
+        if abs(x[1])>0.5
+            return 1.0
+        else
+            return 0.0
         end
     end
-    return s
+    y = zeros(size(x,1))
+    for i = 1:size(x,1)
+        y[i] = helper(x[i,:])
+    end
+    y
 end
 
+function Γx2(x)
+    function helper(x)
+        5x[1]^2+x[2]^2
+    end
+    y = zeros(size(x,1))
+    for i = 1:size(x,1)
+        y[i] = helper(x[i,:])
+    end
+    y
+end

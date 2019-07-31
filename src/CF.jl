@@ -77,7 +77,7 @@ function evaluate(cf::StableCF, ξ::Union{Array{Float64},PyObject})
     weights = cf.quad.weights
     points = cf.quad.points
     Γx = cf.Γx
-    Γx = cast(constant(Γx), ComplexF64)
+    Γx = constant(Γx)
     function _evaluate(ξ)
         ξx = cast(squeeze(cf.quad.points*reshape(ξ,2,1)), ComplexF64)
         s = abs(ξx)^α

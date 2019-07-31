@@ -90,3 +90,81 @@ def pl(x,theta,ac,h):
 end
 
 pl = py"pl"
+
+
+
+if Sys.islinux()
+py"""
+import tensorflow as tf
+libPLONED = tf.load_op_library('./deps/PL1D/build/libPLONED.so')
+@tf.custom_gradient
+def ploned(x,u):
+    y = libPLONED.ploned(x,u)
+    def grad(dy):
+        return libPLONED.ploned_grad(dy, y, x,u)
+    return y, grad
+"""
+elseif Sys.isapple()
+py"""
+import tensorflow as tf
+libPLONED = tf.load_op_library('./deps/PL1D/build/libPLONED.dylib')
+@tf.custom_gradient
+def ploned(x,u):
+    y = libPLONED.ploned(x,u)
+    def grad(dy):
+        return libPLONED.ploned_grad(dy, y, x,u)
+    return y, grad
+"""
+elseif Sys.iswindows()
+py"""
+import tensorflow as tf
+libPLONED = tf.load_op_library('./deps/PL1D/build/libPLONED.dll')
+@tf.custom_gradient
+def ploned(x,u):
+    y = libPLONED.ploned(x,u)
+    def grad(dy):
+        return libPLONED.ploned_grad(dy, y, x,u)
+    return y, grad
+"""
+end
+
+ploned = py"ploned"
+
+
+
+if Sys.islinux()
+py"""
+import tensorflow as tf
+libRBFONED = tf.load_op_library('./deps/RBF1D/build/libRBFONED.so')
+@tf.custom_gradient
+def rbfoned(x,u,c):
+    y = libRBFONED.rbfoned(x,u,c)
+    def grad(dy):
+        return libRBFONED.rbfoned_grad(dy, y, x,u,c)
+    return y, grad
+"""
+elseif Sys.isapple()
+py"""
+import tensorflow as tf
+libRBFONED = tf.load_op_library('./deps/RBF1D/build/libRBFONED.dylib')
+@tf.custom_gradient
+def rbfoned(x,u,c):
+    y = libRBFONED.rbfoned(x,u,c)
+    def grad(dy):
+        return libRBFONED.rbfoned_grad(dy, y, x,u,c)
+    return y, grad
+"""
+elseif Sys.iswindows()
+py"""
+import tensorflow as tf
+libRBFONED = tf.load_op_library('./deps/RBF1D/build/libRBFONED.dll')
+@tf.custom_gradient
+def rbfoned(x,u,c):
+    y = libRBFONED.rbfoned(x,u,c)
+    def grad(dy):
+        return libRBFONED.rbfoned_grad(dy, y, x,u,c)
+    return y, grad
+"""
+end
+
+rbfoned = py"rbfoned"

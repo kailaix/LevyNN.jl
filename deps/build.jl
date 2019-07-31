@@ -1,29 +1,19 @@
 using CMake
 
-cd("quadrature/")
-if !isdir("build")
-    mkdir("build")
-end
-cd("build")
-run(`$cmake ..`)
-run(`make -j`)
-cd("../..")
 
-cd("RBF/")
-if !isdir("build")
-    mkdir("build")
+function buildsrc(dir)
+    cd(dir)
+    if !isdir("build")
+        mkdir("build")
+    end
+    cd("build")
+    run(`$cmake ..`)
+    run(`make -j`)
+    cd("../..")
 end
-cd("build")
-run(`$cmake ..`)
-run(`make -j`)
-cd("../..")
 
-
-cd("PL/")
-if !isdir("build")
-    mkdir("build")
-end
-cd("build")
-run(`$cmake ..`)
-run(`make -j`)
-cd("../..")
+buildsrc("quadrature/")
+buildsrc("PL/")
+buildsrc("PL1D/")
+buildsrc("RBF/")
+buildsrc("RBF1D/")
