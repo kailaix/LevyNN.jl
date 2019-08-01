@@ -1,4 +1,4 @@
-export TruncatedNormal2D, MixedGaussian2D, TruncatedUniform2D, StandardNormal2D, Γstep, Γuniform, Γx2
+export TruncatedNormal2D, MixedGaussian2D, TruncatedUniform2D, StandardNormal2D, Γstep, Γuniform, Γx2, pdf
 struct TruncatedNormal2D end
 function Base.:rand(uf::TruncatedNormal2D)
     θ = randn(2)
@@ -21,6 +21,17 @@ function Base.:rand(uf::TruncatedUniform2D)
     return θ
 end
 
+function Distributions.:pdf(uf::TruncatedNormal2D, x::Array{Float64})
+    y = zeros(size(x,1))
+    for i = 1:length(y)
+        if norm(x[i,:])>1 || x[i,1]<0 || x[i,2]<0
+            continue
+        end
+        y[i] = 2/π/(1-exp(-0.5))*exp(-(norm(x[i,:])^2)/2)
+    end
+    y
+end
+
 struct MixedGaussian2D end
 function Base.:rand(mg::MixedGaussian2D)
     if rand()>0.75
@@ -30,11 +41,26 @@ function Base.:rand(mg::MixedGaussian2D)
     end
 end
 
+function Distributions.:pdf(uf::MixedGaussian2D, x::Array{Float64})
+    y = zeros(size(x,1))
+    for i = 1:length(y)
+        y[i] = 1/(2π)*exp(-(norm(x[i,:])^2)/2)*0.5 + 1/(2π)*exp(-(norm(x[i,:]-[1.0;1.0])^2)/2)*0.5
+    end
+    y
+end
+
 struct StandardNormal2D end
 function Base.:rand(mg::StandardNormal2D)
     randn(2)
 end
 
+function Distributions.:pdf(uf::StandardNormal2D, x::Array{Float64})
+    y = zeros(size(x,1))
+    for i = 1:length(y)
+        y[i] = 1/(2π)*exp(-(norm(x[i,:])^2)/2)
+    end
+    y
+end
 
 function Γuniform(x)
     return ones(size(x,1))

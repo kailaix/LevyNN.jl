@@ -1,9 +1,9 @@
-# domain = "Γstep"
-# btype = "NN"
-# nbasis = 9
-domain = ARGS[1]
-btype = ARGS[2]
-nbasis = parse(Int64, ARGS[3])
+domain = "Γstep"
+btype = "RBF"
+nbasis = 10
+# domain = ARGS[1]
+# btype = ARGS[2]
+# nbasis = parse(Int64, ARGS[3])
 
 @info domain, btype, nbasis
 using Revise
@@ -77,19 +77,7 @@ init(sess)
 @info run(sess, loss)
 # error()
 
-out = BFGS(sess, loss, 15000)
-@info run(sess, α_var)
-if !isdir("$(@__DIR__)/data/$domain$btype$nbasis")
-    mkdir("$(@__DIR__)/data/$domain$btype$nbasis")
-end
-save(sess, "$(@__DIR__)/data/$domain$btype$nbasis/data.mat")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/loss.txt", out)
-
-err = L2error1D(sess, Γ, Γ_var)
-αval = run(sess, α_var)
-println("α=$αval, err=$err")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/alpha.txt", [err αval])
-
+out = BFGS(sess, loss, 100)
 
 close("all")
 try
@@ -100,7 +88,6 @@ end
 plot(quad.θ,νx, "--", label="learned")
 plot(quad.θ,Γ(quad.points), "-", label="exact")
 legend()
-savefig("$(@__DIR__)/data/$domain$btype$nbasis/result.png")
 
 # ADAM(sess, loss)
 error()

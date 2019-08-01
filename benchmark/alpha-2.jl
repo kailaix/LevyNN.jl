@@ -1,9 +1,19 @@
 # domain = "Γstep"
 # btype = "NN"
-# nbasis = 9
-domain = ARGS[1]
-btype = ARGS[2]
-nbasis = parse(Int64, ARGS[3])
+# nbasis = 40
+
+#=
+for _domain in ["Γstep", "Γuniform"]
+    for _btype in ["NN", "PL", "RBF"]
+        for _nbasis in [10,20,40]
+        global domain=_domain; global btype=_btype; global nbasis=_nbasis;include("benchmark/alpha-2.jl")
+        end
+    end
+    end
+=#
+# domain = ARGS[1]
+# btype = ARGS[2]
+# nbasis = parse(Int64, ARGS[3])
 
 @info domain, btype, nbasis
 using Revise
@@ -11,11 +21,13 @@ using Test
 using ADCME
 using LevyNN
 using PyPlot
+using MAT
 using SpecialFunctions
 using Distributions
 using LinearAlgebra
 using DelimitedFiles
 using Random; Random.seed!(233)
+reset_default_graph()
 sess = Session()
 
 # Jump = eval(Jump)()
@@ -74,22 +86,15 @@ f = evaluate(lcf, ξ)
 weight = @. exp(-(ξ[:,1]^2 + ξ[:,2]^2))
 loss = sum(abs(φ-f)^2 )#.* weight)
 init(sess)
-@info run(sess, loss)
+load(sess, "$(@__DIR__)/data/$domain$btype$nbasis/data.mat")
+err = L2error1D(sess, Γ, Γ_var)
+println("α=$(run(sess, α_var)), err=$err")
+
+# @info run(sess, loss)
 # error()
 
-out = BFGS(sess, loss, 15000)
-@info run(sess, α_var)
-if !isdir("$(@__DIR__)/data/$domain$btype$nbasis")
-    mkdir("$(@__DIR__)/data/$domain$btype$nbasis")
-end
-save(sess, "$(@__DIR__)/data/$domain$btype$nbasis/data.mat")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/loss.txt", out)
-
-err = L2error1D(sess, Γ, Γ_var)
-αval = run(sess, α_var)
-println("α=$αval, err=$err")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/alpha.txt", [err αval])
-
+#=
+error()
 
 close("all")
 try
@@ -126,5 +131,4 @@ plot(quad.θ,νx, "--", label="learned")
 plot(quad.θ,Γ(quad.points), "-", label="exact")
 legend()
 # ylim([0.0,1.5])
-
-
+=#
