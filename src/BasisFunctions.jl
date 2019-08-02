@@ -1,4 +1,4 @@
-export RBF, RBF1D, PL, PL1D, NN, Delta, evaluate, evaluate1D
+export RBF, RBF1D, PL, PL1D, NN, Delta, evaluate, evaluate1D, evaluate_
 
 
 
@@ -91,7 +91,9 @@ function evaluate1D(plfun::PL1D, x::Array{Float64})
     ploned(x0,plfun.θ)+ploned(x1,plfun.θ)
 end
 
-
+function evaluate_(plfun::PL1D, x::Array{Float64})
+    ploned(constant(x),plfun.θ)
+end
 
 struct RBF1D
     θ::PyObject
@@ -113,6 +115,9 @@ function evaluate1D(plfun::RBF1D, x::Array{Float64})
     rbfoned(x0,plfun.θ,plfun.c)+rbfoned(x1,plfun.θ,plfun.c)
 end
 
+function evaluate_(plfun::RBF1D, x::Array{Float64})
+    rbfoned(constant(x),plfun.θ,plfun.c)
+end
 
 mutable struct NN
     config::Array{Int64}
@@ -132,6 +137,34 @@ end
 function evaluate(nn::NN, x::Union{PyObject, Array{Float64}})
     scope = nn.scope
     output_dims = nn.config
+    if isa(x, Array)
+        x = constant(x)
+    end
+
+    flag = false
+    if length(size(x))==1
+        x = reshape(x, length(x), 1)
+        flag = true
+    end
+    net = x
+    variable_scope(scope, reuse=AUTO_REUSE, initializer=tf.contrib.layers.xavier_initializer()) do
+        for i = 1:length(output_dims)-1
+            net = dense(net, output_dims[i], activation="relu")
+        end
+        net = dense(net, output_dims[end])
+    end
+    if flag && (size(net,2)==1)
+        net = squeeze(net)
+    end
+    
+    # squeeze(ae(x, nn.config, nn.scope))
+    squeeze((net))
+end
+
+function evaluate_(nn::NN, x::Union{PyObject, Array{Float64}})
+    scope = nn.scope
+    output_dims = copy(nn.config)
+    output_dims[1] = 1
     if isa(x, Array)
         x = constant(x)
     end

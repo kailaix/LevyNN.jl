@@ -24,10 +24,10 @@ function BFGS(sess::PyObject, loss::PyObject, max_iter=15000; kwargs...)
     out
 end
 
-function ADAM(sess::PyObject, loss::PyObject; kwargs...)
+function ADAM(sess::PyObject, loss::PyObject, max_iter=10000; kwargs...)
     opt = AdamOptimizer().minimize(loss)
     init(sess)
-    for i = 1:10000
+    for i = 1:max_iter
         l, _ = run(sess, [loss, opt])
         println("Iter $i, loss = $l")
     end
