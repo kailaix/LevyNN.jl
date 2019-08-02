@@ -6,7 +6,7 @@ btype = ARGS[2]
 nbasis = parse(Int64, ARGS[3])
 
 @info btype, nbasis
-using Revise
+# using Revise
 using Test
 using ADCME
 using LevyNN
@@ -43,7 +43,7 @@ y2_ = evaluate_(rbf, Array(x1)) + 0.5
 loss = sum((y-y_)^2)
 
 init(sess)
-out = BFGS(sess, loss, 1000)
+out = BFGS(sess, loss, 15000)
 y2 = run(sess, y2_)
 plot(x1, y1, "-", label="Exact")
 plot(x1, y2, "--", label="$btype$nbasis")

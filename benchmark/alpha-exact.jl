@@ -1,9 +1,9 @@
-domain = "Γuniform"
-btype = "PL"
-nbasis = 10
-# domain = ARGS[1]
-# btype = ARGS[2]
-# nbasis = parse(Int64, ARGS[3])
+# domain = "Γuniform"
+# btype = "PL"
+# nbasis = 10
+domain = ARGS[1]
+btype = ARGS[2]
+nbasis = parse(Int64, ARGS[3])
 
 @info domain, btype, nbasis
 using Revise
@@ -85,21 +85,20 @@ init(sess)
 
 @info run(sess, loss)
 
-out = BFGS(sess, loss, 100)
+out = BFGS(sess, loss, 15000)
 @info run(sess, [α_var,loss])
-# if !isdir("$(@__DIR__)/data/benchmark/$domain$btype$nbasis")
-#     mkdir("$(@__DIR__)/data/benchmark/$domain$btype$nbasis")
-# end
+if !isdir("$(@__DIR__)/data/benchmark/$domain$btype$nbasis")
+    mkdir("$(@__DIR__)/data/benchmark/$domain$btype$nbasis")
+end
 # save(sess, "$(@__DIR__)/data/benchmark/$domain$btype$nbasis/data.mat")
 # writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/loss.txt", out)
 
 err = L2error1D(sess, Γ, Γ_var)
 αval = run(sess, α_var)
 println("α=$αval, err=$err")
-# writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/alpha.txt", [err αval])
+writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/alpha.txt", [err αval])
 
-error()
-# close("all")
+close("all")
 try
     global νx = run(sess, lcf.Γx)
 catch
@@ -108,6 +107,12 @@ end
 plot(quad.θ,νx, "--", label="learned")
 plot(quad.θ,Γ(quad.points), "-", label="exact")
 legend()
+savefig("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/result.png")
+writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/theta.txt", quad.θ,)
+writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/vx.txt", νx)
+writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/exact.txt", Γ(quad.points))
+
+
 
 error()
 
