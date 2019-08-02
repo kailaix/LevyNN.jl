@@ -30,7 +30,7 @@ b = zeros(2)
 # A = [1.0 2.0;2.0 6.0]
 # b = [1.0;2.0]
 λ = 1.0
-α = 1.5
+α = 0.5
 # Jump = MvNormal(zeros(2), diagm(0=>ones(2)))
 # Jump = MixedGaussian()
 ls = StableSimulator(A, b, α, λ, Γ, Δt)
@@ -79,16 +79,16 @@ init(sess)
 
 out = BFGS(sess, loss, 15000)
 @info run(sess, α_var)
-if !isdir("$(@__DIR__)/data/$domain$btype$nbasis")
-    mkdir("$(@__DIR__)/data/$domain$btype$nbasis")
+if !isdir("$(@__DIR__)/data/alpha0.5$domain$btype$nbasis")
+    mkdir("$(@__DIR__)/data/alpha0.5$domain$btype$nbasis")
 end
-save(sess, "$(@__DIR__)/data/$domain$btype$nbasis/data.mat")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/loss.txt", out)
+save(sess, "$(@__DIR__)/data/alpha0.5$domain$btype$nbasis/data.mat")
+writedlm("$(@__DIR__)/data/alpha0.5$domain$btype$nbasis/loss.txt", out)
 
 err = L2error1D(sess, Γ, Γ_var)
 αval = run(sess, α_var)
 println("α=$αval, err=$err")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/alpha.txt", [err αval])
+writedlm("$(@__DIR__)/data/alpha0.5$domain$btype$nbasis/alpha.txt", [err αval])
 
 
 close("all")
@@ -100,7 +100,7 @@ end
 plot(quad.θ,νx, "--", label="learned")
 plot(quad.θ,Γ(quad.points), "-", label="exact")
 legend()
-savefig("$(@__DIR__)/data/$domain$btype$nbasis/result.png")
+savefig("$(@__DIR__)/data/alpha0.5$domain$btype$nbasis/result.png")
 
 # ADAM(sess, loss)
 error()

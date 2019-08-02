@@ -66,7 +66,9 @@ function symmetrize(x)
     x0 = x
     for i = 1:length(y0)
         y0[i] = atan(x0[i,2],x0[i,1])
-        y0[i] += π
+        if y0[i]<0
+            y0[i] += 2π
+        end
     end
     y0
 end
@@ -84,7 +86,9 @@ end
 function evaluate1D(plfun::PL1D, x::Array{Float64})
     x0 = symmetrize(x)
     x0 = constant(x0)
-    ploned(x0,plfun.θ)+ploned(2π-x0,plfun.θ)
+    x1 = symmetrize(-x)
+    x1 = constant(x1)
+    ploned(x0,plfun.θ)+ploned(x1,plfun.θ)
 end
 
 
@@ -104,7 +108,9 @@ end
 function evaluate1D(plfun::RBF1D, x::Array{Float64})
     x0 = symmetrize(x)
     x0 = constant(x0)
-    rbfoned(x0,plfun.θ, plfun.c)+rbfoned(2π-x0,plfun.θ, plfun.c)
+    x1 = symmetrize(-x)
+    x1 = constant(x1)
+    rbfoned(x0,plfun.θ,plfun.c)+rbfoned(x1,plfun.θ,plfun.c)
 end
 
 

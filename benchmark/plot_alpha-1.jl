@@ -1,21 +1,28 @@
-# domain = "Γstep"
-# btype = "NN"
-# nbasis = 9
-domain = ARGS[1]
-btype = ARGS[2]
-nbasis = parse(Int64, ARGS[3])
 
+#=
+domain = "Γstep"
+close("all")
+btype = "NN"; nbasis = 40; include("benchmark/plot_alpha-1.jl")
+btype = "PL"; nbasis = 10; include("benchmark/plot_alpha-1.jl")
+btype = "RBF"; nbasis = 20; include("benchmark/plot_alpha-1.jl")
+ξ0 = LinRange(0,2π,1000)
+plot(ξ0, ones(1000), "k-", label="reference")
+legend()
+xlabel("x"); ylabel("y")
+=#
 @info domain, btype, nbasis
 using Revise
 using Test
 using ADCME
 using LevyNN
 using PyPlot
+using MAT
 using SpecialFunctions
 using Distributions
 using LinearAlgebra
 using DelimitedFiles
 using Random; Random.seed!(233)
+reset_default_graph()
 sess = Session()
 
 # Jump = eval(Jump)()
@@ -74,57 +81,10 @@ f = evaluate(lcf, ξ)
 weight = @. exp(-(ξ[:,1]^2 + ξ[:,2]^2))
 loss = sum(abs(φ-f)^2 )#.* weight)
 init(sess)
-@info run(sess, loss)
-# error()
-
-out = BFGS(sess, loss, 15000)
-@info run(sess, α_var)
-if !isdir("$(@__DIR__)/data/$domain$btype$nbasis")
-    mkdir("$(@__DIR__)/data/$domain$btype$nbasis")
-end
-save(sess, "$(@__DIR__)/data/$domain$btype$nbasis/data.mat")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/loss.txt", out)
-
-err = L2error1D(sess, Γ, Γ_var)
-αval = run(sess, α_var)
-println("α=$αval, err=$err")
-writedlm("$(@__DIR__)/data/$domain$btype$nbasis/alpha.txt", [err αval])
-
-
-close("all")
-try
-    global νx = run(sess, lcf.Γx)
-catch
-    global νx = lcf.νx
-end
-plot(quad.θ,νx, "--", label="learned")
-plot(quad.θ,Γ(quad.points), "-", label="exact")
-legend()
-savefig("$(@__DIR__)/data/$domain$btype$nbasis/result.png")
-
-# ADAM(sess, loss)
-error()
-close("all")
-φ1 = run(sess, f)
-scatter3D(ξ[:,1], ξ[:,2], abs.(φ1), ".", label="Quadrature")
-scatter3D(ξ[:,1], ξ[:,2], abs.(φ), ".", label="Exact")
-legend()
-
-close("all")
-φ1 = run(sess, f)
-scatter3D(ξ[:,1], ξ[:,2], imag.(φ1), ".", label="Quadrature")
-scatter3D(ξ[:,1], ξ[:,2], imag.(φ), ".", label="Exact")
-legend()
-
-close("all")
-try
-    global νx = run(sess, lcf.Γx)
-catch
-    global νx = lcf.νx
-end
-plot(quad.θ,νx, "--", label="learned")
-plot(quad.θ,Γ(quad.points), "-", label="exact")
-legend()
-# ylim([0.0,1.5])
-
-
+load(sess, "$(@__DIR__)/data/$domain$btype$nbasis/data.mat")
+# err = L2error1D(sess, Γ, Γ_var)
+# println("α=$(run(sess, α_var)), err=$err")
+ξ0 = LinRange(0,2π,1000)
+ξ = [cos.(ξ0) sin.(ξ0)]
+v2 = run(sess, Γ_var(ξ))
+plot(ξ0, v2, "--", label="$btype$(div(nbasis,2))")

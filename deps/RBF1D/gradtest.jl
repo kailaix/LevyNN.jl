@@ -53,7 +53,13 @@ run(sess, u)
 # error()
 # TODO: 
 
-
+# θ = ones(10)
+# c = 2π/10
+# u = rbfoned(LinRange(0,2π,10000)|>Array|>constant, constant(θ), constant(c))
+# close("all")
+# plot(LinRange(0,2π,10000), run(sess, u))
+# savefig("rbftest.png")
+# error()
 # gradient check -- v
 function scalar_function(m)
     return sum(tanh(rbfoned(x,m,c)))

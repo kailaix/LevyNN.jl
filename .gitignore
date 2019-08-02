@@ -2,3 +2,5 @@
 !deps/build.jl
 *vscode*
 benchmark/data/
+*data*
+*.png
