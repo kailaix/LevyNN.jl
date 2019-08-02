@@ -1,3 +1,4 @@
 *build*
 !deps/build.jl
 *vscode*
+benchmark/data/
