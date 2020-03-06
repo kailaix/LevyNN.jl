@@ -31,14 +31,14 @@ end
 
 Γ = Γstep
 nξ = 1000
-btype = "RBF"
-nbasis = 2000
-
+btype = "NN"
+nbasis = 5
+use_log = 0
 if length(ARGS)==2
-    global btype = ARGS[1]
+    global use_log = parse(Int64, ARGS[1])
     global nbasis = parse(Int64, ARGS[2])
 end
-@info btype, nbasis
+@info use_log, nbasis
 
 Δt = 0.5
 A = zeros(2,2)
@@ -79,8 +79,12 @@ end
 
 lcf = StableCF(A, b, Γ_var, α_var, Δt, quad)
 f = evaluate(lcf, ξ)
-loss = sum(abs(φ-f)^2 )
 
+if use_log==0
+    global loss = sum(abs(φ-f)^2 )
+else 
+    global loss = sum(abs(log.(φ)-log(f))^2 )
+end
 
 ξ = LinRange(0,2π,1000)
 ξ = [cos.(ξ) sin.(ξ)]
@@ -98,7 +102,7 @@ init(sess)
 cb = (vs, iter, loss)->begin 
     printstyled("[#$iter] $(vs[1]), err=$(vs[2]) loss=$loss\n", color=:green)
     if mod(iter,100)==0
-        open("data/$btype$nbasis.txt", "a") do io 
+        open("data/log$(use_log)_$nbasis.txt", "a") do io 
             writedlm(io, [iter vs[1] vs[2] loss])
         end
     end
