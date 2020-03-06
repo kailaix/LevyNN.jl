@@ -1,5 +1,4 @@
-using CMake
-
+using ADCME
 
 function buildsrc(dir)
     cd(dir)
@@ -7,8 +6,8 @@ function buildsrc(dir)
         mkdir("build")
     end
     cd("build")
-    run(`$cmake ..`)
-    run(`make -j`)
+    ADCME.cmake()
+    ADCME.make()
     cd("../..")
 end
 

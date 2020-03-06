@@ -35,6 +35,7 @@ function evaluate(rbf::RBF, x::Union{PyObject, Array{Float64}})
     if isa(x, Array)
         x = constant(x)
     end
+    rbf_poly = load_op_and_grad("$(@__DIR__)/../deps/RBF/build/libRBFPoly", "rbf_poly")
     rbf_poly(x,rbf.θ,rbf.c,rbf.p,rbf.ac,rbf.h)
 end
 
@@ -79,7 +80,7 @@ struct PL1D
 end
 
 function PL1D(n::Int64)
-    θ = Variable(1e-3*rand(n))
+    θ = Variable(1e-3*randn(n))
     PL1D(θ, n)
 end
 
