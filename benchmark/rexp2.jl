@@ -33,7 +33,7 @@ end
 nξ = 1000
 btype = "NN"
 nbasis = 5
-use_log = 0
+use_log = 1
 if length(ARGS)==2
     global use_log = parse(Int64, ARGS[1])
     global nbasis = parse(Int64, ARGS[2])
