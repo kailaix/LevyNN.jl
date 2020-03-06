@@ -34,6 +34,12 @@ nξ = 1000
 btype = "NN"
 nbasis = 5
 
+if length(ARGS)==2
+    global btype = ARGS[1]
+    global nbasis = parse(Int64, ARGS[2])
+end
+@info btype, nbasis
+
 Δt = 0.5
 A = zeros(2,2)
 b = zeros(2)
@@ -91,61 +97,11 @@ init(sess)
 
 cb = (vs, iter, loss)->begin 
     printstyled("[#$iter] $(vs[1]), err=$(vs[2]) loss=$loss\n", color=:green)
+    if mod(iter,100)==0
+        open("data/$btype$nbasis.txt", "a") do io 
+            writedlm(io, [iter vs[2] loss])
+        end
+    end
 end
 out = BFGS!(sess, loss, 15000; callback=cb, vars=[α_var, err])
 @info run(sess, [α_var,loss])
-error()
-# if !isdir("$(@__DIR__)/data/benchmark/$domain$btype$nbasis")
-#     mkdir("$(@__DIR__)/data/benchmark/$domain$btype$nbasis")
-# end
-# save(sess, "$(@__DIR__)/data/benchmark/$domain$btype$nbasis/data.mat")
-# writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/loss.txt", out)
-
-err = L2error1D(sess, Γ, Γ_var)
-αval = run(sess, α_var)
-println("α=$αval, err=$err")
-writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/alpha.txt", [err αval])
-
-close("all")
-try
-    global νx = run(sess, lcf.Γx)
-catch
-    global νx = lcf.νx
-end
-plot(quad.θ,νx, "--", label="learned")
-plot(quad.θ,Γ(quad.points), "-", label="exact")
-legend()
-# savefig("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/result.png")
-# writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/theta.txt", quad.θ,)
-# writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/vx.txt", νx)
-# writedlm("$(@__DIR__)/data/benchmark/$domain$btype$nbasis/exact.txt", Γ(quad.points))
-
-
-
-error()
-
-# FOR DEBUG
-close("all")
-φ1 = run(sess, f)
-scatter3D(ξ[:,1], ξ[:,2], abs.(φ1), ".", label="Quadrature")
-scatter3D(ξ[:,1], ξ[:,2], abs.(φ), ".", label="Exact")
-legend()
-
-close("all")
-φ1 = run(sess, f)
-scatter3D(ξ[:,1], ξ[:,2], imag.(φ1), ".", label="Quadrature")
-scatter3D(ξ[:,1], ξ[:,2], imag.(φ), ".", label="Exact")
-legend()
-
-close("all")
-try
-    global νx = run(sess, lcf.Γx)
-catch
-    global νx = lcf.νx
-end
-plot(quad.θ,νx, "--", label="learned")
-plot(quad.θ,Γ(quad.points), "-", label="exact")
-legend()
-# ylim([0.0,1.5])
-
-
